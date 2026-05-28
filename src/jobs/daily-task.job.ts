@@ -37,6 +37,8 @@ async function runDailyTask(): Promise<void> {
   }
 }
 
+export { runDailyTask };
+
 export function scheduleDailyTaskJob(): void {
   cron.schedule(config.cronSchedule, runDailyTask, {
     timezone: 'Europe/Kyiv',
