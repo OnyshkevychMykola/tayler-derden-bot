@@ -21,29 +21,22 @@ function membersKey(chatId: number | string): string {
 export async function addMember(chatId: number | string, member: ChatMember): Promise<void> {
   await redis.sadd(CHATS_KEY, String(chatId));
 
-  const raw = await redis.get<string>(membersKey(chatId));
-  const members: ChatMember[] = raw ? (JSON.parse(raw) as ChatMember[]) : [];
-
+  const members = (await redis.get<ChatMember[]>(membersKey(chatId))) ?? [];
   const exists = members.some((m) => m.id === member.id);
   if (!exists) {
     members.push(member);
-    await redis.set(membersKey(chatId), JSON.stringify(members));
+    await redis.set(membersKey(chatId), members);
   }
 }
 
 export async function removeMember(chatId: number | string, memberId: number): Promise<void> {
-  const raw = await redis.get<string>(membersKey(chatId));
-  if (!raw) return;
-
-  const members: ChatMember[] = JSON.parse(raw) as ChatMember[];
+  const members = (await redis.get<ChatMember[]>(membersKey(chatId))) ?? [];
   const updated = members.filter((m) => m.id !== memberId);
-  await redis.set(membersKey(chatId), JSON.stringify(updated));
+  await redis.set(membersKey(chatId), updated);
 }
 
 export async function getMembers(chatId: number | string): Promise<ChatMember[]> {
-  const raw = await redis.get<string>(membersKey(chatId));
-  if (!raw) return [];
-  return JSON.parse(raw) as ChatMember[];
+  return (await redis.get<ChatMember[]>(membersKey(chatId))) ?? [];
 }
 
 export async function getAllChatIds(): Promise<string[]> {
